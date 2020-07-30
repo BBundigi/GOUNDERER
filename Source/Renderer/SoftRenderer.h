@@ -11,8 +11,8 @@ public:
 
 	void Initialize(class GDIHelper* InitGDIHelper);
 	void UpdateFrame(void);
-	bool IsInRange(int x, int y);
-	void DrawPixel(int x, int y);
+	bool IsInRange(i32 x, i32 y);
+	void DrawPixel(i32 x, i32 y);
 
 private:
 

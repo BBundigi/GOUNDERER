@@ -20,12 +20,12 @@ void SoftRenderer::Initialize(GDIHelper* InitGDIHelper)
 	return;
 }
 
-bool SoftRenderer::IsInRange(int x, int y)
+bool SoftRenderer::IsInRange(i32 x, i32 y)
 {
 	return (abs(x) < (APP_WIDTH / 2)) && (abs(y) < (APP_HEIGHT / 2));
 }
 
-void SoftRenderer::DrawPixel(int x, int y)
+void SoftRenderer::DrawPixel(i32 x, i32 y)
 {
 	if (!IsInRange(x, y))
 	{
