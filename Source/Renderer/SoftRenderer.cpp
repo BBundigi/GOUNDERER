@@ -1,6 +1,6 @@
 #include "SoftRenderer.h"
 #include "Windows/GDIHelper.h"
-
+#pragma once
 SoftRenderer::SoftRenderer()
 {
 	mGDIHelper = nullptr;
@@ -14,7 +14,9 @@ void SoftRenderer::Initialize(GDIHelper* InitGDIHelper)
 	}
 
 	mGDIHelper = InitGDIHelper;
-
+	mTriVertexArr[0] = Vertex(Vector2(0.0f, 200.0f),Vector2(0.0f,1.0f));
+	mTriVertexArr[1] = Vertex(Vector2(400.0f,0.0f), Vector2(1.0f,0.0f));
+	mTriVertexArr[2] = Vertex(Vector2(0.0f, -200.0f),Vector2(0.0f,0.0f));
 	return;
 }
 
@@ -35,60 +37,50 @@ void SoftRenderer::DrawPixel(i32 x, i32 y)
 	*(dest + offset) = mGDIHelper->GetCurrentColor();
 }
 
-void SoftRenderer::DrawTri(float x0, float y0, float x1, float y1, float x2, float y2)
+void SoftRenderer::DrawTri(const Vertex* const vertexes)
 {
-	//Sort Y;
-	float sortY[3]
-	{
-		y0, y1, y2
-	};
-	float sortX[3]
-	{
-		x0, x1, x2
-	};
+	const Vector2& position0 = vertexes[0].GetPosition();
+	const Vector2& position1 = vertexes[1].GetPosition();
+	const Vector2& position2 = vertexes[2].GetPosition();
 
-	for(i32 i = 0; i < 3 - 1; i++)
-	{
-		for (i32 j = 0; j < 3 - i - 1; j++)
-		{
-			if (sortY[j] < sortY[j + 1])
-			{
-				float temp = sortY[j];
-				sortY[j] = sortY[j + 1];
-				sortY[j + 1] = temp;
-
-				temp = sortX[j];
-				sortX[j] = sortX[j + 1];
-				sortX[j + 1] = temp;
-			}
-		}
-	}
 	//TopFlatTri
-	if (sortY[0] == sortY[1])//우선은 Epsilon 생각 안하기로
+	if (position0.GetY() == position1.GetY())//우선은 Epsilon 생각 안하기로
 	{
-		DrawFlatTri(sortX[2], sortY[2], sortX[0], sortX[1], sortY[0]);
+		DrawFlatTri(position2,position0,position1, vertexes);
 	}
-	else if (sortY[1] == sortY[2])
+	else if (position1.GetY() == position2.GetY())
 	{
-		DrawFlatTri(sortX[0], sortY[0], sortX[1], sortX[2], sortY[1]);
+		DrawFlatTri(position0, position1, position2, vertexes);
 	}
 	else
 	{
-		float newX = sortX[0] + (sortY[1] - sortY[0]) / (sortY[2] - sortY[0]) * (sortX[2] - sortX[0]);//닮음 이용
-		float newY = sortY[1];
 
-		DrawFlatTri(sortX[0], sortY[0], sortX[1], newX, newY);
-		DrawFlatTri(sortX[2], sortY[2], sortX[1], newX, newY);
+		float newX = position0.GetX() + (position1.GetY() - position0.GetY())
+			/ (position2.GetY() - position0.GetY())
+			* (position2.GetX() - position0.GetX());//닮음 이용
+		float newY = vertexes[1].GetPosition().GetY();
+		Vector2 point = Vector2(newX, newY);
+
+		DrawFlatTri(position0 , position1, point, vertexes);
+		DrawFlatTri(position2,position1, point, vertexes);
 	}
 }
 
-void SoftRenderer::DrawFlatTri(float centerX, float centerY, float x1, float x2, float flatY)
+void SoftRenderer::DrawFlatTri(const Vector2& centerPoint, const Vector2& point1, const Vector2& point2
+								,const Vertex* const vertexes)
 {
-	int fillDir = centerY > flatY ? -1 : 1;
+	const Vector2& position0 = vertexes[0].GetPosition();
+	const Vector2& position1 = vertexes[1].GetPosition();
+	const Vector2& position2 = vertexes[2].GetPosition();
 
-	float dy = flatY - centerY;
-	float leftdX = (x1 - centerX) / dy * fillDir;//BottomFlat일 경우 기울기의 부호를 뒤집어 줘야함
-	float rightdX = (x2 - centerX) / dy * fillDir;
+	float area = (position1.GetX() - position0.GetX()) * (position2.GetY() - position0.GetY())
+		- (position2.GetX() - position0.GetX()) * (position1.GetY() - position0.GetY());
+	area = abs(area) / 2;
+	int fillDir = centerPoint.GetY() > point1.GetY() ? -1 : 1;
+
+	float dy = point1.GetY() - centerPoint.GetY();
+	float leftdX = (point1.GetX() - centerPoint.GetX()) / dy * fillDir;//BottomFlat일 경우 기울기의 부호를 뒤집어 줘야함
+	float rightdX = (point2.GetX() - centerPoint.GetX()) / dy * fillDir;
 
 	if (leftdX > rightdX)
 	{
@@ -97,23 +89,43 @@ void SoftRenderer::DrawFlatTri(float centerX, float centerY, float x1, float x2,
 		leftdX = temp;
 	}
 	dy = abs(dy);
-	float curLeftX = centerX;
-	float curRightX = centerX;
+	float curLeftX = centerPoint.GetX();
+	float curRightX = centerPoint.GetX();
 
-	int curY = (int)round(centerY);
+	int curY = (int)round(centerPoint.GetY());
 
 	for (int i = 0; i <= dy; i++)
 	{
+
 		int leftPointX = (int)ceil(curLeftX);
 		int rightPointX = (int)curRightX;
 		for (int j = leftPointX; j < rightPointX; j++)
 		{
+			Vertex newVertex = InterporateVertex(Vector2(j, curY), vertexes, area);
+			mGDIHelper->SetColor(newVertex.GetUV().GetX() * 255, newVertex.GetUV().GetY() * 255, 0.0f);
 			DrawPixel(j, curY);
 		}
 		curY += fillDir;
 		curLeftX += leftdX;
 		curRightX += rightdX;
 	}
+}
+
+Vertex SoftRenderer::InterporateVertex(Vector2& point, const Vertex* const vertexes, float area)
+{
+	const Vector2 a = vertexes[1].GetPosition() - vertexes[0].GetPosition();
+	const Vector2 b = vertexes[2].GetPosition() - vertexes[0].GetPosition();
+	const Vector2 p = point - vertexes[0].GetPosition();
+	float weightC = a.GetX() * p.GetY() - p.GetX() * a.GetY();
+	weightC /= area * 2;
+	weightC = abs(weightC);
+	float weightB = b.GetX() * p.GetY() - p.GetX() * b.GetY();
+	weightB /= area * 2;
+	weightB = abs(weightB);
+	float weightA = 1 - weightC - weightB;
+
+	return Vertex::InterporateVertex(vertexes[0], vertexes[1], vertexes[2], weightA, weightB, weightC);
+
 }
 
 void SoftRenderer::DrawLine(float x0, float y0, float x1, float y1)
@@ -157,13 +169,7 @@ void SoftRenderer::UpdateFrame()
 
 	// Draw vertical line
 	mGDIHelper->SetColor(255, 255, 255);
-	DrawTri(0.0f,0.0f, 200.0f,100.0f, 200.0f, -300.0f);
-
-	
-
-
-
-
+	DrawTri(mTriVertexArr);
 
 	// Buffer Swap 
 	mGDIHelper->BufferSwap();
