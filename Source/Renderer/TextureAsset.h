@@ -1,18 +1,24 @@
 #pragma once
 #include <memory>
-
+#include <string>
 #include <assert.h>
+
+typedef unsigned int UINT;
+struct Color24
+{
+	char R;
+	char G;
+	char B;
+};
+
 struct TextureDataType
 {
-	LinearColor* ColorData;
+	Color24* ColorData;
 	UINT DataSize;
 	UINT TexHeight;
 	UINT TexWidth;
 };
-struct TextureBufferDataType
-{
-	TextureDataType AlbedoMap;
-};
+
 class TextureAsset final
 {
 private:
@@ -28,15 +34,15 @@ public:
 	explicit TextureAsset() noexcept = default;
 	virtual ~TextureAsset() noexcept = default;
 	// Load Targa file
-	void Load(const std::string& InPath) override;
+	void Load(const std::string& InPath);
 private:
-	std::unique_ptr<LinearColor[]> mTextureData;
+	std::unique_ptr<Color24[]> mTextureData;
 	UINT mDataSize;
 	UINT mTextureHeight;
 	UINT mTextureWidth;
 public:
-	FORCEINLINE LinearColor* GetTextureData() const { return mTextureData.get(); }
-	FORCEINLINE UINT GetTextureDataSize() const { return mDataSize; }
-	FORCEINLINE UINT GetTextureHeight() const { return mTextureHeight; }
-	FORCEINLINE UINT GetTextureWidth() const { return mTextureWidth; }
+	inline Color24* GetTextureData() const { return mTextureData.get(); }
+	inline UINT GetTextureDataSize() const { return mDataSize; }
+	inline UINT GetTextureHeight() const { return mTextureHeight; }
+	inline UINT GetTextureWidth() const { return mTextureWidth; }
 };

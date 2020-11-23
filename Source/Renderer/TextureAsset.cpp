@@ -1,6 +1,6 @@
 #include "TextureAsset.h"
-#include <cassert>
 #include <fstream>
+
 
 void TextureAsset::Load(const std::string& InPath)
 {
@@ -13,17 +13,17 @@ void TextureAsset::Load(const std::string& InPath)
 	// 높이, 너비, bpp를 읽음 // bpp - bit per pixel
 	mTextureHeight = static_cast<UINT>(TargaFileHeader.height);
 	mTextureWidth = static_cast<UINT>(TargaFileHeader.width);
-	// bpp가 32일때만 열기 // RGBA구조의 타가 파일만 허용
-	assert(TargaFileHeader.bpp == 32);
-	UINT ImageSize = mTextureWidth * mTextureHeight * 4;
-	std::unique_ptr<BYTE[]> TargaImage = std::make_unique<BYTE[]>(ImageSize);
+	// bpp가 24일때만 열기 // RGBA구조의 타가 파일만 허용
+	assert(TargaFileHeader.bpp == 24);
+	UINT ImageSize = mTextureWidth * mTextureHeight * 3;
+	auto TargaImage = std::make_unique<char[]>(ImageSize);
 	assert(TargaImage != nullptr);
 	Fin.read(reinterpret_cast<char*>(TargaImage.get()), ImageSize);
 	Fin.close();
-	mTextureData = std::make_unique<LinearColor[]>(mTextureHeight * mTextureWidth);
+	mTextureData = std::make_unique<Color24[]>(mTextureHeight * mTextureWidth);
 	assert(mTextureData != nullptr);
 	int Index = 0;
-	Color32 TempColorBuffer;
+	Color24 TempColorBuffer;
 	for (UINT j = 0; j < mTextureHeight; ++j)
 	{
 		for (UINT i = 0; i < mTextureHeight; ++i)
@@ -31,9 +31,8 @@ void TextureAsset::Load(const std::string& InPath)
 			TempColorBuffer.R = TargaImage[Index + 2];  // Red.
 			TempColorBuffer.G = TargaImage[Index + 1];  // Green.
 			TempColorBuffer.B = TargaImage[Index + 0];  // Blue
-			TempColorBuffer.A = TargaImage[Index + 3];  // Alpha
-			mTextureData[mTextureWidth * i + j] = LinearColor(TempColorBuffer); // Gamma to Linear
-			Index += 4;
+			mTextureData[mTextureWidth * i + j] = TempColorBuffer; // Gamma to Linear
+			Index += 3;
 		}
 	}
 }

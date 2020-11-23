@@ -10,9 +10,9 @@ public:
 	virtual ~Vector2() = default;
 	inline float GetX() const;
 	inline float GetY() const;
-	Vector2& operator+(const Vector2& rhs);
-	Vector2& operator-(const Vector2& rhs);
-	Vector2& operator*(float rhs);
+	Vector2 operator+(const Vector2& rhs) const;
+	Vector2 operator-(const Vector2& rhs) const;
+	Vector2 operator*(float rhs) const;
 private:
 	float mX;
 	float mY;
