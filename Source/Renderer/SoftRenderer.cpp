@@ -20,7 +20,7 @@ void SoftRenderer::Initialize(GDIHelper* InitGDIHelper)
 	}
 	mGDIHelper = InitGDIHelper;
 	mCamera.Near = 0.3f;
-	mCamera.Far = 300.0f;
+	mCamera.Far = 3000.0f;
 	mCamera.FOV = 60.0f;
 	// Buffer Clear
 	FILE* debugFile = fopen("DebugText.txt", "w");
@@ -29,13 +29,39 @@ void SoftRenderer::Initialize(GDIHelper* InitGDIHelper)
 	Matrix4x4 worldMat = mObject.GetWorldMatrix();
 	Matrix4x4 projectMat = mCamera.GetProjectMatrix();
 	int	vlaue = mObject.GetModel().GetVerticesLength();
+	fprintf(debugFile, "World Vector\n");
 	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
 	{
-		Vector4 debugVector =  viewMat * worldMat * vertexes[i].Position;
-		debugVector = projectMat * debugVector;
-		debugVector = debugVector * (-1 / debugVector.GetW());
+		Vector4 worldVector = worldMat * vertexes[i].Position;
+		//debugVector = projectMat * debugVector;
 		//debugVector = Vector4(debugVector.GetX() * (APP_WIDTH / 2), debugVector.GetY() * (APP_HEIGHT / 2), debugVector.GetZ(), debugVector.GetW());
-		fprintf(debugFile, "{%f,%f,%f,%f}\n", debugVector.GetX(), debugVector.GetY(),debugVector.GetZ(),debugVector.GetW());
+		fprintf(debugFile, "{%f,%f,%f,%f}\n", worldVector.GetX(), worldVector.GetY(), worldVector.GetZ(), worldVector.GetW());
+		if (i % 3 == 2)
+		{
+			fprintf(debugFile, "====================\n");
+		}
+	}
+
+	fprintf(debugFile, "View Vector\n");
+	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
+	{
+		Vector4 viewVector = viewMat * worldMat * vertexes[i].Position;
+		//debugVector = projectMat * debugVector;
+		//debugVector = Vector4(debugVector.GetX() * (APP_WIDTH / 2), debugVector.GetY() * (APP_HEIGHT / 2), debugVector.GetZ(), debugVector.GetW());
+		fprintf(debugFile, "{%f,%f,%f,%f}\n", viewVector.GetX(), viewVector.GetY(), viewVector.GetZ(), viewVector.GetW());
+		if (i % 3 == 2)
+		{
+			fprintf(debugFile, "====================\n");
+		}
+	}
+
+	fprintf(debugFile, "Project Vector\n");
+	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
+	{
+		Vector4 projectVector = viewMat * worldMat * vertexes[i].Position;
+		projectVector =  projectMat * projectVector;
+		projectVector = projectVector * (1.0f / projectVector.GetW());
+		fprintf(debugFile, "{%f,%f,%f,%f}\n", projectVector.GetX(), projectVector.GetY(), projectVector.GetZ(), projectVector.GetW());
 		if (i % 3 == 2)
 		{
 			fprintf(debugFile, "====================\n");
@@ -82,6 +108,7 @@ void SoftRenderer::DrawTri(const Vertex* const vertexes)
 			/ (position2.GetY() - position0.GetY())
 			* (position2.GetX() - position0.GetX());//´àÀ½ ÀÌ¿ë
 		float newY = position1.GetY();
+		//float newZ = 
 		Vector4 point = Vector4(newX, newY, 0.0f, 0.0f);
 		float area = (position1.GetX() - position0.GetX()) * (position2.GetY() - position0.GetY())
 			- (position2.GetX() - position0.GetX()) * (position1.GetY() - position0.GetY());
@@ -125,17 +152,28 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 		int rightPointX = (int)curRightX;
 		for (int j = leftPointX; j <= rightPointX; j++)
 		{
+			if (j > APP_WIDTH / 2 || j < -APP_WIDTH / 2 || curY > APP_HEIGHT / 2 || curY < -APP_HEIGHT / 2)
+			{
+				continue;
+			}
 			Vertex newVertex = InterporateVertex(Vector2(j, curY), vertexes, area);
+			float interporatedZ = GetZinterporateValue(Vector2(j, curY), vertexes, area);
+			int bufferIndex = j + (APP_WIDTH / 2) + APP_HEIGHT * (curY + APP_HEIGHT / 2);
+			if (mDepthBuffer[bufferIndex] < interporatedZ)
+			{
+				continue;
+			}
+			mDepthBuffer[bufferIndex] = interporatedZ;
 			Vector2 sampledPos(newVertex.UV.GetX() * (mTextureAsset.GetTextureWidth()),
 				newVertex.UV.GetY() * (mTextureAsset.GetTextureHeight() - 1));
 			//int newTexelIndex = static_cast<int>(round(sampledPos.GetY())) * mTextureAsset.GetTextureWidth()
 				+ static_cast<int>(round(sampledPos.GetX()));
 			//assert(newTexelIndex < mTextureAsset.GetTextureWidth() * mTextureAsset.GetTextureHeight());
 			//Color24 texel = textureDatas[newTexelIndex];
-			if(j > APP_WIDTH / 2 || j < -APP_WIDTH / 2 || curY > APP_HEIGHT / 2 || curY < -APP_HEIGHT / 2)
-			{
-				continue;
-			}
+			//mGDIHelper->SetColor(interporatedZ * 255,
+			//	interporatedZ * 255,
+			//	interporatedZ * 255);
+			
 			DrawPixel(j, curY);
 		}
 		curY += fillDir;
@@ -159,13 +197,32 @@ Vertex SoftRenderer::InterporateVertex(Vector2& point, const Vertex* const verte
 
 	return Vertex::InterporateVertex(vertexes[0], vertexes[1], vertexes[2], weightA, weightB, weightC);
 }
+float SoftRenderer::GetZinterporateValue(Vector2& point, const Vertex* const vertexes, float area)
+{
+	const Vector4 a = vertexes[1].Position - vertexes[0].Position;
+	const Vector4 b = vertexes[2].Position - vertexes[0].Position;
+	const Vector4 p = Vector4(point.GetX(), point.GetY(), 0.0f, 0.0f) - vertexes[0].Position;
+	float weightC = a.GetX() * p.GetY() - p.GetX() * a.GetY();
+	weightC /= area * 2;
+	weightC = abs(weightC);
+	float weightB = b.GetX() * p.GetY() - p.GetX() * b.GetY();
+	weightB /= area * 2;
+	weightB = abs(weightB);
+	float weightA = 1 - weightC - weightB;
+	float newZ = (1 / vertexes[0].Position.GetZ()) * weightA +
+		(1 / vertexes[1].Position.GetZ()) * weightB +
+		(1 / vertexes[2].Position.GetZ()) * weightC;
+	newZ = 1 / newZ;
+	return newZ;
 
-void SoftRenderer::ClaerDephtBuffer()
+}
+
+void SoftRenderer::ClearDephtBuffer()
 {
 	u32 bufferLength = APP_WIDTH * APP_HEIGHT;
 	for (int i = 0; i < bufferLength; i++)
 	{
-		mDepthBuffer[i] = 1.0f;
+		mDepthBuffer[i] = 1;
 	}
 }
 
@@ -213,7 +270,11 @@ void SoftRenderer::DrawObject(const GounwooObject& object)
 	Matrix4x4 MVPmat = project * view * world;
 	for (int i = 0; i < model.GetVerticesLength(); i += 3)
 	{
-		mGDIHelper->SetColor(i * 10, i * 10, i * 10);
+		//if (i / 3 != 0)
+		//{
+		//	continue;
+		//}
+		mGDIHelper->SetColor(i * 20, i * 20, i * 20);
 		triVertex[0] = vertexes[i];
 		triVertex[1] = vertexes[i + 1];
 		triVertex[2] = vertexes[i + 2];
@@ -221,7 +282,7 @@ void SoftRenderer::DrawObject(const GounwooObject& object)
 		for (int i = 0; i < 3; i++)
 		{
 			Vector4 newPos = MVPmat * triVertex[i].Position;
-			newPos = newPos * (-1 / newPos.GetW());
+			newPos = newPos * (1 / newPos.GetW());
 			newPos = Vector4(newPos.GetX() * (APP_WIDTH / 2), newPos.GetY() * (APP_HEIGHT / 2), newPos.GetZ(), newPos.GetW());
 			
 			triVertex[i].Position = newPos;
@@ -247,8 +308,9 @@ void SoftRenderer::UpdateFrame()
 {
 	mGDIHelper->SetColor(32, 128, 255);
 	mGDIHelper->Clear();
+	ClearDephtBuffer();
 	DrawObject(mObject);
-	mObject.EulerAngle = mObject.EulerAngle + Vector3(0.0f, 1.0f, 0.0f);
+	mObject.EulerAngle = mObject.EulerAngle + Vector3(5.0f, 0.0f, 0.0f);
 	mGDIHelper->BufferSwap();
 	return;
 }

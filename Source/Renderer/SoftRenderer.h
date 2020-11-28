@@ -29,5 +29,6 @@ private:
 	void DrawFlatTri(const Vector4& centerPoint, const Vector4& point1, const Vector4& point2
 		, const Vertex* const vertexes);
 	Vertex InterporateVertex(Vector2& point, const Vertex* const vertexes, float area);
-	void ClaerDephtBuffer();
+	float GetZinterporateValue(Vector2& point, const Vertex* const vertexes, float area);
+	void ClearDephtBuffer();
 };

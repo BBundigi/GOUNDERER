@@ -7,5 +7,5 @@ GounwooObject::GounwooObject(const std::string& modelPath, const Vector4& positi
 }
 Matrix4x4 GounwooObject::GetWorldMatrix() const
 {
-	return Matrix4x4::GetMoveMatrix(Position * -1) * Matrix4x4::GetReverseRotationMatrix(EulerAngle);
+	return Matrix4x4::GetMoveMatrix(Position ) * Matrix4x4::GetRotationMatrix(EulerAngle);
 }
