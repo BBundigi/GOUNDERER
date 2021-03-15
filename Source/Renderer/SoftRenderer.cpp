@@ -5,10 +5,11 @@
 #include <cassert>
 
 SoftRenderer::SoftRenderer()
-	: mObject("SimpleObject.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
+	: mObject("Resources/Models/Monkey.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 0.0f, 0.0f))
 	, mCamera(Vector4(0.0f, 0.0f, -10.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
 {
+	mTextureAsset.Load("Resources/Texture/Fieldstone_DM.tga");
 	mGDIHelper = nullptr;
 }
 
@@ -108,11 +109,7 @@ void SoftRenderer::DrawTri(const Vertex* const vertexes)
 			/ (position2.GetY() - position0.GetY())
 			* (position2.GetX() - position0.GetX());//´àÀ½ ÀÌ¿ë
 		float newY = position1.GetY();
-		//float newZ = 
 		Vector4 point = Vector4(newX, newY, 0.0f, 0.0f);
-		float area = (position1.GetX() - position0.GetX()) * (position2.GetY() - position0.GetY())
-			- (position2.GetX() - position0.GetX()) * (position1.GetY() - position0.GetY());
-		area = abs(area) / 2;
 		DrawFlatTri(position0 , position1, point, vertexes);
 		DrawFlatTri(position2,position1, point, vertexes);
 	}
@@ -164,15 +161,17 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 				continue;
 			}
 			mDepthBuffer[bufferIndex] = interporatedZ;
+
 			Vector2 sampledPos(newVertex.UV.GetX() * (mTextureAsset.GetTextureWidth()),
 				newVertex.UV.GetY() * (mTextureAsset.GetTextureHeight() - 1));
-			//int newTexelIndex = static_cast<int>(round(sampledPos.GetY())) * mTextureAsset.GetTextureWidth()
+
+			int newTexelIndex = static_cast<int>(round(sampledPos.GetY())) * mTextureAsset.GetTextureWidth()
 				+ static_cast<int>(round(sampledPos.GetX()));
-			//assert(newTexelIndex < mTextureAsset.GetTextureWidth() * mTextureAsset.GetTextureHeight());
-			//Color24 texel = textureDatas[newTexelIndex];
-			//mGDIHelper->SetColor(interporatedZ * 255,
-			//	interporatedZ * 255,
-			//	interporatedZ * 255);
+			assert(newTexelIndex < mTextureAsset.GetTextureWidth() * mTextureAsset.GetTextureHeight());
+			Color24 texel = textureDatas[newTexelIndex];
+			mGDIHelper->SetColor(newVertex.UV.GetX() * 255,
+				interporatedZ * 255,
+				interporatedZ * 255);
 			
 			DrawPixel(j, curY);
 		}
@@ -197,6 +196,7 @@ Vertex SoftRenderer::InterporateVertex(Vector2& point, const Vertex* const verte
 
 	return Vertex::InterporateVertex(vertexes[0], vertexes[1], vertexes[2], weightA, weightB, weightC);
 }
+
 float SoftRenderer::GetZinterporateValue(Vector2& point, const Vertex* const vertexes, float area)
 {
 	const Vector4 a = vertexes[1].Position - vertexes[0].Position;
@@ -270,10 +270,6 @@ void SoftRenderer::DrawObject(const GounwooObject& object)
 	Matrix4x4 MVPmat = project * view * world;
 	for (int i = 0; i < model.GetVerticesLength(); i += 3)
 	{
-		//if (i / 3 != 0)
-		//{
-		//	continue;
-		//}
 		mGDIHelper->SetColor(i * 20, i * 20, i * 20);
 		triVertex[0] = vertexes[i];
 		triVertex[1] = vertexes[i + 1];

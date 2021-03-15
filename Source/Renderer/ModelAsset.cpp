@@ -61,8 +61,7 @@ void ModelAsset::Load(const std::string& InPath)
 				int j = 0;
 				while (token != NULL)
 				{
-					unsigned int value;
-					sscanf(cStr, "%u", &CurDataSet[j]);
+					sscanf(token, "%u", &CurDataSet[j]);
 					j++;
 					token = strtok(NULL,"/");
 				}
