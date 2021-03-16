@@ -7,7 +7,7 @@
 SoftRenderer::SoftRenderer()
 	: mObject("Resources/Models/Monkey.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 0.0f, 0.0f))
-	, mCamera(Vector4(0.0f, 0.0f, -10.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
+	, mCamera(Vector4(0.0f, 0.0f, -5.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
 {
 	mTextureAsset.Load("Resources/Texture/Fieldstone_DM.tga");
 	mGDIHelper = nullptr;
@@ -111,7 +111,7 @@ void SoftRenderer::DrawTri(const Vertex* const vertexes)
 		float newY = position1.GetY();
 		Vector4 point = Vector4(newX, newY, 0.0f, 0.0f);
 		DrawFlatTri(position0 , position1, point, vertexes);
-		DrawFlatTri(position2,position1, point, vertexes);
+		DrawFlatTri(position2, position1, point, vertexes);
 	}
 }
 
@@ -125,8 +125,11 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 	float area = (position1.GetX() - position0.GetX()) * (position2.GetY() - position0.GetY())
 		- (position2.GetX() - position0.GetX()) * (position1.GetY() - position0.GetY());
 	area = abs(area) / 2;
-	int fillDir = centerPoint.GetY() > point1.GetY() ? -1 : 1;
-
+	if (area == 0)
+	{
+		return;
+	}
+	int fillDir = centerPoint.GetY() > point1.GetY() ? 1 : -1;
 	int dy = (int)point1.GetY() - (int)centerPoint.GetY();
 	float leftdX = (point1.GetX() - centerPoint.GetX()) / dy * fillDir;//BottomFlat일 경우 기울기의 부호를 뒤집어 줘야함
 	float rightdX = (point2.GetX() - centerPoint.GetX()) / dy * fillDir;
@@ -141,7 +144,7 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 	float curLeftX = centerPoint.GetX();
 	float curRightX = centerPoint.GetX();
 
-	int curY = (int)(centerPoint.GetY());
+	int curY = fillDir == 1 ? (int)ceil(centerPoint.GetY()) : (int)floor(centerPoint.GetY());
 	const Color24* textureDatas = mTextureAsset.GetTextureData();
 	for (int i = 0; i <= dy; i++)
 	{
@@ -167,11 +170,11 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 
 			int newTexelIndex = static_cast<int>(round(sampledPos.GetY())) * mTextureAsset.GetTextureWidth()
 				+ static_cast<int>(round(sampledPos.GetX()));
-			assert(newTexelIndex < mTextureAsset.GetTextureWidth() * mTextureAsset.GetTextureHeight());
-			Color24 texel = textureDatas[newTexelIndex];
-			mGDIHelper->SetColor(newVertex.UV.GetX() * 255,
-				interporatedZ * 255,
-				interporatedZ * 255);
+			//assert(newTexelIndex < mTextureAsset.GetTextureWidth() * mTextureAsset.GetTextureHeight());
+			//Color24 texel = textureDatas[newTexelIndex];
+			//mGDIHelper->SetColor(newVertex.UV.GetX() * 255,
+			//	interporatedZ * 255,
+			//	interporatedZ * 255);
 			
 			DrawPixel(j, curY);
 		}
