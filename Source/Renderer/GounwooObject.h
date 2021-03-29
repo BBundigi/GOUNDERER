@@ -13,6 +13,10 @@ public:
 	Matrix4x4 GetWorldMatrix() const;
 	Vector4 Position;
 	Vector3 EulerAngle;
+	inline int GetVertexCount() const
+	{
+		return Model.GetVerticesLength() / 3;	
+	}
 	inline const ModelAsset& GetModel() const
 	{
 		return Model;

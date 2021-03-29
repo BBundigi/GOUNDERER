@@ -5,9 +5,9 @@
 #include <cassert>
 
 SoftRenderer::SoftRenderer()
-	: mObject("Resources/Models/Monkey.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
+	: mObject("Resources/Models/Plane.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 0.0f, 0.0f))
-	, mCamera(Vector4(0.0f, 0.0f, -5.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
+	, mCamera(Vector4(0.0f, 0.0f, -20.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
 {
 	mTextureAsset.Load("Resources/Texture/Fieldstone_DM.tga");
 	mGDIHelper = nullptr;
@@ -56,7 +56,7 @@ void SoftRenderer::Initialize(GDIHelper* InitGDIHelper)
 		}
 	}
 
-	fprintf(debugFile, "Project Vector\n");
+	fprintf(debugFile, "Project NDC Vector\n");
 	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
 	{
 		Vector4 projectVector = viewMat * worldMat * vertexes[i].Position;
@@ -68,7 +68,24 @@ void SoftRenderer::Initialize(GDIHelper* InitGDIHelper)
 			fprintf(debugFile, "====================\n");
 		}
 	}
+
+	fprintf(debugFile, "Project Screen Vector\n");
+	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
+	{
+		Vector4 projectVector = viewMat * worldMat * vertexes[i].Position;
+		projectVector = projectMat * projectVector;
+		projectVector = projectVector * (1.0f / projectVector.GetW());
+		projectVector = Vector4(projectVector.GetX() * (APP_WIDTH / 2), projectVector.GetY() * (APP_HEIGHT / 2), 
+			projectVector.GetZ(), projectVector.GetW());
+		fprintf(debugFile, "{%f,%f,%f,%f}\n", projectVector.GetX(), projectVector.GetY(), projectVector.GetZ(), projectVector.GetW());
+		if (i % 3 == 2)
+		{
+			fprintf(debugFile, "====================\n");
+		}
+	}
 	fclose(debugFile);
+	mObject.EulerAngle = Vector3(0.0f, 20.0f, 0.0f);
+	DrawObject(mObject);
 }
 
 bool SoftRenderer::IsInRange(i32 x, i32 y)
@@ -118,6 +135,11 @@ void SoftRenderer::DrawTri(const Vertex* const vertexes)
 void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1, const Vector4& point2
 								,const Vertex* const vertexes)
 {
+	static int sFunctionCallCount = 0;
+	char fileName[32];
+	sprintf(fileName, "DrawTriDebug%d.txt", sFunctionCallCount);
+	FILE* debugFile = fopen(fileName, "w");
+	sFunctionCallCount++;
 	const Vector4& position0 = vertexes[0].Position;
 	const Vector4& position1 = vertexes[1].Position;
 	const Vector4& position2 = vertexes[2].Position;
@@ -129,8 +151,8 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 	{
 		return;
 	}
-	int fillDir = centerPoint.GetY() > point1.GetY() ? 1 : -1;
-	int dy = (int)point1.GetY() - (int)centerPoint.GetY();
+	int fillDir = centerPoint.GetY() > point1.GetY() ? -1 : 1;
+	float dy = (point1.GetY() - centerPoint.GetY());
 	float leftdX = (point1.GetX() - centerPoint.GetX()) / dy * fillDir;//BottomFlat일 경우 기울기의 부호를 뒤집어 줘야함
 	float rightdX = (point2.GetX() - centerPoint.GetX()) / dy * fillDir;
 
@@ -143,22 +165,35 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 	dy = abs(dy);
 	float curLeftX = centerPoint.GetX();
 	float curRightX = centerPoint.GetX();
-
-	int curY = fillDir == 1 ? (int)ceil(centerPoint.GetY()) : (int)floor(centerPoint.GetY());
+	//int curY = (int)(centerPoint.GetY());
+	float curY = centerPoint.GetY();
 	const Color24* textureDatas = mTextureAsset.GetTextureData();
+	fprintf(debugFile, "====Draw New Flat Tri====\n");
+	fprintf(debugFile, "CenterPoints : (%f, %f)\nPoint1 : (%f, %f)\nPoint2 : (%f, %f)\n"
+	,centerPoint.GetX(), centerPoint.GetY(), point1.GetX(), point1.GetY(), point2.GetX(), point2.GetY());
+	fprintf(debugFile, "Basic Info\nfillDir : %s\ndy : %f\nleftdx : %f\nrightdx : %f\n",
+		fillDir == 1 ? "above" : "below", dy, leftdX, rightdX);
+	fprintf(debugFile, "=====Draw Start=====\n");
 	for (int i = 0; i <= dy; i++)
 	{
+		int pixelYIndex = (int)ceil(curY);
 		int leftPointX = (int)ceil(curLeftX);
-		int rightPointX = (int)curRightX;
+		int rightPointX = (int)floor(curRightX);
+		fprintf(debugFile, "===Y Index Info===\n");
+		fprintf(debugFile, "curY : %f, Pixel Y Index : %d\n", curY, pixelYIndex);
+		fprintf(debugFile, "======Draw Line=====\n");
+		fprintf(debugFile, "curLeftX : %f, curRightX : %f\n",curLeftX, curRightX);
+		fprintf(debugFile, "leftPointX : %d, rightPointX : %d\n",leftPointX, rightPointX);
+		fprintf(debugFile, "DrawPixel Count : %d\n", rightPointX - leftPointX + 1);
 		for (int j = leftPointX; j <= rightPointX; j++)
 		{
 			if (j > APP_WIDTH / 2 || j < -APP_WIDTH / 2 || curY > APP_HEIGHT / 2 || curY < -APP_HEIGHT / 2)
 			{
 				continue;
 			}
-			Vertex newVertex = InterporateVertex(Vector2(j, curY), vertexes, area);
+			Vertex newVertex = InterporateVertex(Vector2(curLeftX, curY), vertexes, area);
 			float interporatedZ = GetZinterporateValue(Vector2(j, curY), vertexes, area);
-			int bufferIndex = j + (APP_WIDTH / 2) + APP_HEIGHT * (curY + APP_HEIGHT / 2);
+			int bufferIndex = j + (APP_WIDTH / 2) + APP_HEIGHT * (pixelYIndex + APP_HEIGHT / 2);
 			if (mDepthBuffer[bufferIndex] < interporatedZ)
 			{
 				continue;
@@ -170,18 +205,21 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 
 			int newTexelIndex = static_cast<int>(round(sampledPos.GetY())) * mTextureAsset.GetTextureWidth()
 				+ static_cast<int>(round(sampledPos.GetX()));
-			//assert(newTexelIndex < mTextureAsset.GetTextureWidth() * mTextureAsset.GetTextureHeight());
-			//Color24 texel = textureDatas[newTexelIndex];
-			//mGDIHelper->SetColor(newVertex.UV.GetX() * 255,
-			//	interporatedZ * 255,
-			//	interporatedZ * 255);
+			assert(newTexelIndex < mTextureAsset.GetTextureWidth() * mTextureAsset.GetTextureHeight());
+		 newVertex = InterporateVertex(Vector2(j, curY), vertexes, area);
+
+			Color24 texel = textureDatas[newTexelIndex];
+			mGDIHelper->SetColor(newVertex.UV.GetX() * 255,newVertex.UV.GetY() * 255, 0);
 			
-			DrawPixel(j, curY);
+			DrawPixel(j, pixelYIndex);
 		}
+		fprintf(debugFile, "====Draw Line End ====\n");
 		curY += fillDir;
 		curLeftX += leftdX;
 		curRightX += rightdX;
 	}
+
+	fclose(debugFile);
 }
 
 Vertex SoftRenderer::InterporateVertex(Vector2& point, const Vertex* const vertexes, float area)
@@ -298,6 +336,7 @@ void SoftRenderer::DrawObject(const GounwooObject& object)
 				}
 			}
 		}
+
 		DrawTri(triVertex);
 
 	}
@@ -308,8 +347,7 @@ void SoftRenderer::UpdateFrame()
 	mGDIHelper->SetColor(32, 128, 255);
 	mGDIHelper->Clear();
 	ClearDephtBuffer();
-	DrawObject(mObject);
-	mObject.EulerAngle = mObject.EulerAngle + Vector3(5.0f, 0.0f, 0.0f);
+	mObject.EulerAngle = Vector3(0.0f, 20.0f, 0.0f);
 	mGDIHelper->BufferSwap();
 	return;
-}
+} 
