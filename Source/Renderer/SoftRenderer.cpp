@@ -5,9 +5,9 @@
 #include <cassert>
 
 SoftRenderer::SoftRenderer()
-	: mObject("Resources/Models/Plane.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
+	: mObject("Resources/Models/Monkey.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 0.0f, 0.0f))
-	, mCamera(Vector4(0.0f, 0.0f, -20.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
+	, mCamera(Vector4(0.0f, 0.0f, -5.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
 {
 	mTextureAsset.Load("Resources/Texture/Fieldstone_DM.tga");
 	mGDIHelper = nullptr;
@@ -135,11 +135,18 @@ void SoftRenderer::DrawTri(const Vertex* const vertexes)
 void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1, const Vector4& point2
 								,const Vertex* const vertexes)
 {
+
+#ifdef DEBUG
 	static int sFunctionCallCount = 0;
 	char fileName[32];
 	sprintf(fileName, "DrawTriDebug%d.txt", sFunctionCallCount);
 	FILE* debugFile = fopen(fileName, "w");
 	sFunctionCallCount++;
+	if (sFunctionCallCount > 4)
+	{
+		sFunctionCallCount = 0;
+	}
+#endif
 	const Vector4& position0 = vertexes[0].Position;
 	const Vector4& position1 = vertexes[1].Position;
 	const Vector4& position2 = vertexes[2].Position;
@@ -168,23 +175,29 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 	//int curY = (int)(centerPoint.GetY());
 	float curY = centerPoint.GetY();
 	const Color24* textureDatas = mTextureAsset.GetTextureData();
+
+#ifdef DEBUG
 	fprintf(debugFile, "====Draw New Flat Tri====\n");
 	fprintf(debugFile, "CenterPoints : (%f, %f)\nPoint1 : (%f, %f)\nPoint2 : (%f, %f)\n"
-	,centerPoint.GetX(), centerPoint.GetY(), point1.GetX(), point1.GetY(), point2.GetX(), point2.GetY());
+		, centerPoint.GetX(), centerPoint.GetY(), point1.GetX(), point1.GetY(), point2.GetX(), point2.GetY());
 	fprintf(debugFile, "Basic Info\nfillDir : %s\ndy : %f\nleftdx : %f\nrightdx : %f\n",
 		fillDir == 1 ? "above" : "below", dy, leftdX, rightdX);
-	fprintf(debugFile, "=====Draw Start=====\n");
+	fprintf(debugFile, "\t=====Draw Start=====\n");
+#endif // DEBUG
+
 	for (int i = 0; i <= dy; i++)
 	{
-		int pixelYIndex = (int)ceil(curY);
-		int leftPointX = (int)ceil(curLeftX);
-		int rightPointX = (int)floor(curRightX);
-		fprintf(debugFile, "===Y Index Info===\n");
-		fprintf(debugFile, "curY : %f, Pixel Y Index : %d\n", curY, pixelYIndex);
-		fprintf(debugFile, "======Draw Line=====\n");
-		fprintf(debugFile, "curLeftX : %f, curRightX : %f\n",curLeftX, curRightX);
-		fprintf(debugFile, "leftPointX : %d, rightPointX : %d\n",leftPointX, rightPointX);
-		fprintf(debugFile, "DrawPixel Count : %d\n", rightPointX - leftPointX + 1);
+		int pixelYIndex = (int)round(curY);
+		int leftPointX = (int)floor(curLeftX);
+		int rightPointX = (int)ceil(curRightX);
+#ifdef DEBUG
+		fprintf(debugFile, "\t===Y Index Info===\n");
+		fprintf(debugFile, "\tcurY : %f, Pixel Y Index : %d\n", curY, pixelYIndex);
+		fprintf(debugFile, "\t\t======Draw Line=====\n");
+		fprintf(debugFile, "\t\tcurLeftX : %f, curRightX : %f\n",curLeftX, curRightX);
+		fprintf(debugFile, "\t\tleftPointX : %d, rightPointX : %d\n",leftPointX, rightPointX);
+		fprintf(debugFile, "\t\tDrawPixel Count : %d\n", rightPointX - leftPointX + 1);
+#endif;
 		for (int j = leftPointX; j <= rightPointX; j++)
 		{
 			if (j > APP_WIDTH / 2 || j < -APP_WIDTH / 2 || curY > APP_HEIGHT / 2 || curY < -APP_HEIGHT / 2)
@@ -213,13 +226,16 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 			
 			DrawPixel(j, pixelYIndex);
 		}
-		fprintf(debugFile, "====Draw Line End ====\n");
+#ifdef DEBUG
+		fprintf(debugFile, "\t\t====Draw Line End ====\n");
+#endif // DEBUG
 		curY += fillDir;
 		curLeftX += leftdX;
 		curRightX += rightdX;
 	}
-
+#ifdef DEBUG
 	fclose(debugFile);
+#endif // DEBUG
 }
 
 Vertex SoftRenderer::InterporateVertex(Vector2& point, const Vertex* const vertexes, float area)
@@ -347,7 +363,8 @@ void SoftRenderer::UpdateFrame()
 	mGDIHelper->SetColor(32, 128, 255);
 	mGDIHelper->Clear();
 	ClearDephtBuffer();
-	mObject.EulerAngle = Vector3(0.0f, 20.0f, 0.0f);
+	DrawObject(mObject);
+	mObject.EulerAngle = mObject.EulerAngle + Vector3(0.0f, 2.0f, 0.0f);
 	mGDIHelper->BufferSwap();
 	return;
 } 
