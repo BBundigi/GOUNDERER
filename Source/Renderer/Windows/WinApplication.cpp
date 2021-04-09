@@ -1,6 +1,5 @@
-
 #include <cassert>
-
+#include <windowsx.h>
 #include "WinApplication.h"
 #include "GDIHelper.h"
 #include "SoftRenderer.h"
@@ -94,6 +93,17 @@ int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
 	{
+		switch (msg.message)
+		{
+		case  WM_LBUTTONDOWN:
+		{
+			
+			break;
+		}
+
+		default:
+			break;
+		}
 		// Process any messages in the queue.
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{

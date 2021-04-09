@@ -25,7 +25,7 @@ Vector2 Vector2::operator*(float rhs) const
 {
 	Vector2 newVector;
 	newVector.mX = mX * rhs;
-	newVector.mX = mY * rhs;
+	newVector.mY = mY * rhs;
 	return newVector;
 }
 

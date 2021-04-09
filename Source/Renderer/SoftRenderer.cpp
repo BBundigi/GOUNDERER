@@ -2,10 +2,11 @@
 
 #include "SoftRenderer.h"
 #include "Windows/GDIHelper.h"
+#include <iostream>
 #include <cassert>
 
 SoftRenderer::SoftRenderer()
-	: mObject("Resources/Models/Monkey.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
+	: mObject("Resources/Models/Plane.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 0.0f, 0.0f))
 	, mCamera(Vector4(0.0f, 0.0f, -5.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
 {
@@ -84,7 +85,6 @@ void SoftRenderer::Initialize(GDIHelper* InitGDIHelper)
 		}
 	}
 	fclose(debugFile);
-	mObject.EulerAngle = Vector3(0.0f, 20.0f, 0.0f);
 	DrawObject(mObject);
 }
 
@@ -187,7 +187,7 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 
 	for (int i = 0; i <= dy; i++)
 	{
-		int pixelYIndex = (int)round(curY);
+		int pixelYIndex = fillDir == 1 ? (int)ceil(curY) : (int)floor(curY);
 		int leftPointX = (int)floor(curLeftX);
 		int rightPointX = (int)ceil(curRightX);
 #ifdef DEBUG
@@ -214,15 +214,15 @@ void SoftRenderer::DrawFlatTri(const Vector4& centerPoint, const Vector4& point1
 			mDepthBuffer[bufferIndex] = interporatedZ;
 
 			Vector2 sampledPos(newVertex.UV.GetX() * (mTextureAsset.GetTextureWidth()),
-				newVertex.UV.GetY() * (mTextureAsset.GetTextureHeight() - 1));
+				newVertex.UV.GetY() * (mTextureAsset.GetTextureHeight()));
 
-			int newTexelIndex = static_cast<int>(round(sampledPos.GetY())) * mTextureAsset.GetTextureWidth()
-				+ static_cast<int>(round(sampledPos.GetX()));
+			int newTexelIndex = static_cast<int>(sampledPos.GetY()) * mTextureAsset.GetTextureWidth()
+				+ static_cast<int>(sampledPos.GetX()) - 1;
 			assert(newTexelIndex < mTextureAsset.GetTextureWidth() * mTextureAsset.GetTextureHeight());
 		 newVertex = InterporateVertex(Vector2(j, curY), vertexes, area);
 
 			Color24 texel = textureDatas[newTexelIndex];
-			mGDIHelper->SetColor(newVertex.UV.GetX() * 255,newVertex.UV.GetY() * 255, 0);
+			mGDIHelper->SetColor(newVertex.UV.GetX() * 255, newVertex.UV.GetY() * 255, 0);
 			
 			DrawPixel(j, pixelYIndex);
 		}
@@ -325,9 +325,10 @@ void SoftRenderer::DrawObject(const GounwooObject& object)
 	Matrix4x4 view = mCamera.GetViewMatrix();
 	Matrix4x4 project = mCamera.GetProjectMatrix();
 	Matrix4x4 MVPmat = project * view * world;
+	UINT totalFaceCount = model.GetVerticesLength() / 3;
+	float colorPerFace = 255 / (float)totalFaceCount;
 	for (int i = 0; i < model.GetVerticesLength(); i += 3)
 	{
-		mGDIHelper->SetColor(i * 20, i * 20, i * 20);
 		triVertex[0] = vertexes[i];
 		triVertex[1] = vertexes[i + 1];
 		triVertex[2] = vertexes[i + 2];
@@ -352,10 +353,12 @@ void SoftRenderer::DrawObject(const GounwooObject& object)
 				}
 			}
 		}
-
+		//float currentColor = colorPerFace * i / 3;
+		//mGDIHelper->SetColor(currentColor, currentColor, currentColor);
 		DrawTri(triVertex);
 
 	}
+
 }
 
 void SoftRenderer::UpdateFrame()
@@ -364,7 +367,7 @@ void SoftRenderer::UpdateFrame()
 	mGDIHelper->Clear();
 	ClearDephtBuffer();
 	DrawObject(mObject);
-	mObject.EulerAngle = mObject.EulerAngle + Vector3(0.0f, 2.0f, 0.0f);
+	//mObject.EulerAngle = mObject.EulerAngle + Vector3(0.0f, 2.0f, 0.0f);
 	mGDIHelper->BufferSwap();
 	return;
 } 

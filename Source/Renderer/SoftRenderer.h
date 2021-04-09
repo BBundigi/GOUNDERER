@@ -13,13 +13,18 @@ public:
 	~SoftRenderer() = default;
 
 	void Initialize(class GDIHelper* InitGDIHelper);
-	void UpdateFrame(void);
-	bool IsInRange(i32 x, i32 y);
 	void DrawPixel(i32 x, i32 y);
+	void UpdateFrame(void);
+	inline Camera& GetCamera()
+	{
+		return mCamera;
+	}
+private:
+	bool IsInRange(i32 x, i32 y);
 	void DrawTri(const Vertex* const vertexes);
 	void DrawLine(float x0, float y0, float x1, float y1);
 	void DrawObject(const GounwooObject& object);
-private:
+
 	float mDepthBuffer[APP_WIDTH * APP_HEIGHT];
 	Vertex mTriVertexArr[3];
 	Camera mCamera;
