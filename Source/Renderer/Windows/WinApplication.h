@@ -8,7 +8,7 @@
 
 #include "GDIHelper.h"
 #include "SoftRenderer.h"
-#include "MouseInp"
+#include "MouseInputReciver.h"
 
 class WinApplication
 {
@@ -33,7 +33,7 @@ private:
 	HINSTANCE mHInstance;
 	std::unique_ptr<GDIHelper> mGDIHelper;
 	std::unique_ptr<SoftRenderer> mSoftRenderer;
-	std::unique_ptr<MouseINputManager
+	MouseInputReciver mMouseInputReciver;
 public:
 
 	inline HWND GetHwnd() const { return mHwnd; }

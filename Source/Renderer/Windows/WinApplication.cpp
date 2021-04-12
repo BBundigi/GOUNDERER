@@ -93,13 +93,14 @@ int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
 	{
+		mMouseInputReciver.TryProcessMouseMessage(msg);
 		switch (msg.message)
 		{
 		case  WM_LBUTTONDOWN:
 		{
-			
 			break;
 		}
+		case 
 
 		default:
 			break;
