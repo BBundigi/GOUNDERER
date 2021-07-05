@@ -3,13 +3,14 @@
 
 enum eMouseType
 {
+	None,
 	LButton,
 	MButton,
 	RButton,
 };
 struct MouseInfo
 {
-	MouseInfo() = delete;
+	MouseInfo() = default;
 	MouseInfo(eMouseType mouseType, int currentXPos, int currentYPos, int dXPos, int dYPos);
 	eMouseType MouseType;
 	int CurrentXPos;
@@ -18,7 +19,7 @@ struct MouseInfo
 	int DYPos;
 };
 
-class MouseInputReciver sealed
+class MouseInputReciver
 {
 public:
 	MouseInputReciver() = default;

@@ -1,8 +1,6 @@
 #include <cassert>
 #include <windowsx.h>
 #include "WinApplication.h"
-#include "GDIHelper.h"
-#include "SoftRenderer.h"
 
 
 WinApplication* WinApplication::mWinApplication = nullptr;
@@ -10,9 +8,11 @@ WinApplication* WinApplication::mWinApplication = nullptr;
 WinApplication::WinApplication()
 	: mHwnd(nullptr)
 	, mHInstance(nullptr)
+	, mMouseInputReciver(nullptr)
 {
 	mGDIHelper = std::make_unique<GDIHelper>();
 	mSoftRenderer = std::make_unique<SoftRenderer>();
+	mMouseInputReciver = std::make_unique<MouseInputReciver>();
 }
 
 void WinApplication::CreateInstance()
@@ -93,17 +93,28 @@ int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
 	{
-		mMouseInputReciver.TryProcessMouseMessage(msg);
-		switch (msg.message)
+		bool isMouseMsg = mMouseInputReciver->TryProcessMouseMessage(msg);
+		if (isMouseMsg)
 		{
-		case  WM_LBUTTONDOWN:
-		{
-			break;
-		}
-		case 
+			MouseInfo mouseInfo = mMouseInputReciver->GetMouseInfo();
 
-		default:
-			break;
+			switch (mouseInfo.MouseType)
+			{
+			case eMouseType::LButton:
+			{
+				break;
+			}
+			case eMouseType::RButton:
+			{
+				break;
+			}
+			case eMouseType::MButton:
+			{
+				break;
+			}
+			default:
+				break;
+			}
 		}
 		// Process any messages in the queue.
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))

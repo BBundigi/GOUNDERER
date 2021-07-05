@@ -3,14 +3,6 @@
 
 
 
-MouseInputReciver::MouseInputReciver()
-{
-}
-
-
-MouseInputReciver::~MouseInputReciver()
-{
-}
 
 bool MouseInputReciver::TryProcessMouseMessage(MSG msg)
 {
@@ -19,29 +11,32 @@ bool MouseInputReciver::TryProcessMouseMessage(MSG msg)
 	{
 	case WM_LBUTTONDOWN:
 	{
-		mMouseInfo = MouseInfo();
-		mMouseInfo
-		
-		mPrevXPos = GET_X_LPARAM(msg.lParam);
-		mPrevYPos = GET_Y_LPARAM(msg.lParam);
+		mMouseInfo.MouseType = eMouseType::LButton;
+		int mouseXPos = GET_X_LPARAM(msg.lParam);
+		int mouseYPos = GET_Y_LPARAM(msg.lParam);
+		mMouseInfo.CurrentXPos = mouseXPos;
+		mMouseInfo.CurrentYPos = mouseYPos;
+
+
 		break;
 	}
 	case WM_MOUSEMOVE:
 	{
-		int newXPos = GET_X_LPARAM(msg.lParam);
-		int newYPos = GET_Y_LPARAM(msg.lParam);
+		int mouseXPos = GET_X_LPARAM(msg.lParam);
+		int mouseYPos = GET_Y_LPARAM(msg.lParam);
+		mMouseInfo.CurrentXPos = mouseXPos;
+		mMouseInfo.CurrentYPos = mouseYPos;
+		mMouseInfo.DXPos = mouseXPos - mMouseInfo.CurrentXPos;
+		mMouseInfo.DYPos = mouseYPos = mMouseInfo.CurrentYPos;
 
-		int dXPos = newXPos - mPrevXPos;
-		int dYPos = newYPos - mPrevYPos;
 
-		mPrevXPos = newXPos;
-		mPrevYPos = newYPos;
 		break;
 	}
 	case WM_LBUTTONUP:
 	{
-		mPrevXPos = -1;
-		mPrevYPos = -1;
+		mMouseInfo.MouseType = eMouseType::None;
+		mMouseInfo.DXPos = -1;
+		mMouseInfo.DYPos = -1;
 		break;
 	}
 	case RI_MOUSE_WHEEL:

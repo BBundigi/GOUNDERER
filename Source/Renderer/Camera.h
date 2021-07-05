@@ -11,6 +11,7 @@ class Camera
 public:
 	Camera() = default;
 	Camera(Vector4 postion, Vector3 rotation);
+	
 	Vector4 Position;
 	Vector3 Rotation;
 	Matrix4x4 GetViewMatrix();

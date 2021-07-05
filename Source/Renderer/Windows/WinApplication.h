@@ -33,7 +33,7 @@ private:
 	HINSTANCE mHInstance;
 	std::unique_ptr<GDIHelper> mGDIHelper;
 	std::unique_ptr<SoftRenderer> mSoftRenderer;
-	MouseInputReciver mMouseInputReciver;
+	std::unique_ptr<MouseInputReciver> mMouseInputReciver;
 public:
 
 	inline HWND GetHwnd() const { return mHwnd; }

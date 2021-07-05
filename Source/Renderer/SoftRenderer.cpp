@@ -6,7 +6,7 @@
 #include <cassert>
 
 SoftRenderer::SoftRenderer()
-	: mObject("Resources/Models/Plane.obj", Vector4(0.0f, 0.0f, 0.0f, 0.0f),
+	: mObject("Resources/Models/Box.obj", Vector4(1.0f, 0.0f, 0.0f, 0.0f),
 		Vector3(0.0f, 0.0f, 0.0f))
 	, mCamera(Vector4(0.0f, 0.0f, -5.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
 {
@@ -270,7 +270,7 @@ float SoftRenderer::GetZinterporateValue(Vector2& point, const Vertex* const ver
 		(1 / vertexes[1].Position.GetZ()) * weightB +
 		(1 / vertexes[2].Position.GetZ()) * weightC;
 	newZ = 1 / newZ;
-	return newZ;
+ 	return newZ;
 
 }
 
@@ -367,7 +367,8 @@ void SoftRenderer::UpdateFrame()
 	mGDIHelper->Clear();
 	ClearDephtBuffer();
 	DrawObject(mObject);
-	//mObject.EulerAngle = mObject.EulerAngle + Vector3(0.0f, 2.0f, 0.0f);
+	mObject.EulerAngle = mObject.EulerAngle + Vector3(0.0f, 2.0f, 0.0f);
+	mObject.Position = mObject.Position + Vector4(10.0f, 0.0f, 0.0f, 0.0f);
 	mGDIHelper->BufferSwap();
 	return;
 } 
