@@ -7,13 +7,13 @@ void ModelAsset::Load(const std::string& InPath)
 {
 
 	std::vector<Vector4> VertPositions;
-	std::vector<UINT> IndexPositions;
+	std::vector<u32> IndexPositions;
 
 	std::vector<Vector2> VertUVs;
-	std::vector<UINT> IndexUVs;
+	std::vector<u32> IndexUVs;
 
 	std::vector<Vector3> VertNormals;
-	std::vector<UINT> IndexNormals;
+	std::vector<u32> IndexNormals;
 
 	std::ifstream Fin(InPath, std::ios::in);
 	assert(Fin.is_open());
@@ -50,7 +50,7 @@ void ModelAsset::Load(const std::string& InPath)
 		else if (CurLine == "f")
 		{
 			std::string CurDataString;
-			UINT CurDataSet[3];
+			u32 CurDataSet[3];
 
 			for (int i = 0; i < 3; ++i)
 			{
@@ -77,7 +77,7 @@ void ModelAsset::Load(const std::string& InPath)
 	mVerticesLength = mIndicesLength = IndexPositions.size();
 
 	mVertices = std::make_unique<Vertex[]>(mVerticesLength);
-	mIndices = std::make_unique<UINT[]>(mIndicesLength);
+	mIndices = std::make_unique<u32[]>(mIndicesLength);
 	for (int i = 0; i < IndexPositions.size(); ++i)
 	{
 		mVertices[i] =  Vertex(VertPositions[IndexPositions[i] - 1], 

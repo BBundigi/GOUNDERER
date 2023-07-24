@@ -15,6 +15,7 @@ public:
 	void Initialize(class GDIHelper* InitGDIHelper);
 	void DrawPixel(i32 x, i32 y);
 	void UpdateFrame(void);
+	void UpdateFrame(float x0, float y0, float x1, float y1);
 	inline Camera& GetCamera()
 	{
 		return mCamera;

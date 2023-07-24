@@ -6,11 +6,10 @@
 #include <cassert>
 
 SoftRenderer::SoftRenderer()
-	: mObject("Resources/Models/Box.obj", Vector4(1.0f, 0.0f, 0.0f, 0.0f),
+	: mObject(Vector3(0.0f,0.0f,0.0f),
 		Vector3(0.0f, 0.0f, 0.0f))
-	, mCamera(Vector4(0.0f, 0.0f, -5.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f))
+	, mCamera(Vector3(0.0f, 0.0f, -5.0f), Vector3(0.0f, 0.0f, 0.0f))
 {
-	mTextureAsset.Load("Resources/Texture/Fieldstone_DM.tga");
 	mGDIHelper = nullptr;
 }
 
@@ -25,67 +24,66 @@ void SoftRenderer::Initialize(GDIHelper* InitGDIHelper)
 	mCamera.Far = 3000.0f;
 	mCamera.FOV = 60.0f;
 	// Buffer Clear
-	FILE* debugFile = fopen("DebugText.txt", "w");
-	Vertex* vertexes = mObject.GetModel().GetVertices();
-	Matrix4x4 viewMat = mCamera.GetViewMatrix();
-	Matrix4x4 worldMat = mObject.GetWorldMatrix();
-	Matrix4x4 projectMat = mCamera.GetProjectMatrix();
-	int	vlaue = mObject.GetModel().GetVerticesLength();
-	fprintf(debugFile, "World Vector\n");
-	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
-	{
-		Vector4 worldVector = worldMat * vertexes[i].Position;
-		//debugVector = projectMat * debugVector;
-		//debugVector = Vector4(debugVector.GetX() * (APP_WIDTH / 2), debugVector.GetY() * (APP_HEIGHT / 2), debugVector.GetZ(), debugVector.GetW());
-		fprintf(debugFile, "{%f,%f,%f,%f}\n", worldVector.GetX(), worldVector.GetY(), worldVector.GetZ(), worldVector.GetW());
-		if (i % 3 == 2)
-		{
-			fprintf(debugFile, "====================\n");
-		}
-	}
+	//FILE* debugFile = fopen("DebugText.txt", "w");
+	//Vertex* vertexes = mObject.GetModel().GetVertices();
+	//Matrix4x4 viewMat = mCamera.GetViewMatrix();
+	//Matrix4x4 worldMat = mObject.GetWorldMatrix();
+	//Matrix4x4 projectMat = mCamera.GetProjectMatrix();
+	//int	vlaue = mObject.GetModel().GetVerticesLength();
+	//fprintf(debugFile, "World Vector\n");
+	//for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
+	//{
+	//	Vector4 worldVector = worldMat * vertexes[i].Position;
+	//	//debugVector = projectMat * debugVector;
+	//	//debugVector = Vector4(debugVector.GetX() * (APP_WIDTH / 2), debugVector.GetY() * (APP_HEIGHT / 2), debugVector.GetZ(), debugVector.GetW());
+	//	fprintf(debugFile, "{%f,%f,%f,%f}\n", worldVector.GetX(), worldVector.GetY(), worldVector.GetZ(), worldVector.GetW());
+	//	if (i % 3 == 2)
+	//	{
+	//		fprintf(debugFile, "====================\n");
+	//	}
+	//}
 
-	fprintf(debugFile, "View Vector\n");
-	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
-	{
-		Vector4 viewVector = viewMat * worldMat * vertexes[i].Position;
-		//debugVector = projectMat * debugVector;
-		//debugVector = Vector4(debugVector.GetX() * (APP_WIDTH / 2), debugVector.GetY() * (APP_HEIGHT / 2), debugVector.GetZ(), debugVector.GetW());
-		fprintf(debugFile, "{%f,%f,%f,%f}\n", viewVector.GetX(), viewVector.GetY(), viewVector.GetZ(), viewVector.GetW());
-		if (i % 3 == 2)
-		{
-			fprintf(debugFile, "====================\n");
-		}
-	}
+	//fprintf(debugFile, "View Vector\n");
+	//for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
+	//{
+	//	Vector4 viewVector = viewMat * worldMat * vertexes[i].Position;
+	//	//debugVector = projectMat * debugVector;
+	//	//debugVector = Vector4(debugVector.GetX() * (APP_WIDTH / 2), debugVector.GetY() * (APP_HEIGHT / 2), debugVector.GetZ(), debugVector.GetW());
+	//	fprintf(debugFile, "{%f,%f,%f,%f}\n", viewVector.GetX(), viewVector.GetY(), viewVector.GetZ(), viewVector.GetW());
+	//	if (i % 3 == 2)
+	//	{
+	//		fprintf(debugFile, "====================\n");
+	//	}
+	//}
 
-	fprintf(debugFile, "Project NDC Vector\n");
-	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
-	{
-		Vector4 projectVector = viewMat * worldMat * vertexes[i].Position;
-		projectVector =  projectMat * projectVector;
-		projectVector = projectVector * (1.0f / projectVector.GetW());
-		fprintf(debugFile, "{%f,%f,%f,%f}\n", projectVector.GetX(), projectVector.GetY(), projectVector.GetZ(), projectVector.GetW());
-		if (i % 3 == 2)
-		{
-			fprintf(debugFile, "====================\n");
-		}
-	}
+	//fprintf(debugFile, "Project NDC Vector\n");
+	//for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
+	//{
+	//	Vector4 projectVector = viewMat * worldMat * vertexes[i].Position;
+	//	projectVector =  projectMat * projectVector;
+	//	projectVector = projectVector * (1.0f / projectVector.GetW());
+	//	fprintf(debugFile, "{%f,%f,%f,%f}\n", projectVector.GetX(), projectVector.GetY(), projectVector.GetZ(), projectVector.GetW());
+	//	if (i % 3 == 2)
+	//	{
+	//		fprintf(debugFile, "====================\n");
+	//	}
+	//}
 
-	fprintf(debugFile, "Project Screen Vector\n");
-	for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
-	{
-		Vector4 projectVector = viewMat * worldMat * vertexes[i].Position;
-		projectVector = projectMat * projectVector;
-		projectVector = projectVector * (1.0f / projectVector.GetW());
-		projectVector = Vector4(projectVector.GetX() * (APP_WIDTH / 2), projectVector.GetY() * (APP_HEIGHT / 2), 
-			projectVector.GetZ(), projectVector.GetW());
-		fprintf(debugFile, "{%f,%f,%f,%f}\n", projectVector.GetX(), projectVector.GetY(), projectVector.GetZ(), projectVector.GetW());
-		if (i % 3 == 2)
-		{
-			fprintf(debugFile, "====================\n");
-		}
-	}
-	fclose(debugFile);
-	DrawObject(mObject);
+	//fprintf(debugFile, "Project Screen Vector\n");
+	//for (int i = 0; i < mObject.GetModel().GetVerticesLength(); i++)
+	//{
+	//	Vector4 projectVector = viewMat * worldMat * vertexes[i].Position;
+	//	projectVector = projectMat * projectVector;
+	//	projectVector = projectVector * (1.0f / projectVector.GetW());
+	//	projectVector = Vector4(projectVector.GetX() * (APP_WIDTH / 2), projectVector.GetY() * (APP_HEIGHT / 2), 
+	//		projectVector.GetZ(), projectVector.GetW());
+	//	fprintf(debugFile, "{%f,%f,%f,%f}\n", projectVector.GetX(), projectVector.GetY(), projectVector.GetZ(), projectVector.GetW());
+	//	if (i % 3 == 2)
+	//	{
+	//		fprintf(debugFile, "====================\n");
+	//	}
+	//}
+	//fclose(debugFile);
 }
 
 bool SoftRenderer::IsInRange(i32 x, i32 y)
@@ -365,10 +363,23 @@ void SoftRenderer::UpdateFrame()
 {
 	mGDIHelper->SetColor(32, 128, 255);
 	mGDIHelper->Clear();
+
+	mGDIHelper->SetColor(255, 0, 0);
+	DrawLine(-100, -100, 100, 100);
+
 	ClearDephtBuffer();
-	DrawObject(mObject);
-	mObject.EulerAngle = mObject.EulerAngle + Vector3(0.0f, 2.0f, 0.0f);
-	mObject.Position = mObject.Position + Vector4(10.0f, 0.0f, 0.0f, 0.0f);
 	mGDIHelper->BufferSwap();
 	return;
-} 
+}
+void SoftRenderer::UpdateFrame(float x0, float y0, float x1, float y1)
+{
+	mGDIHelper->SetColor(32, 128, 255);
+	mGDIHelper->Clear();
+
+	mGDIHelper->SetColor(255, 0, 0);
+	DrawLine(x0, y0, x1, y1);
+
+	ClearDephtBuffer();
+	mGDIHelper->BufferSwap();
+	return;
+}

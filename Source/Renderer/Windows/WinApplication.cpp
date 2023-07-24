@@ -93,6 +93,11 @@ int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
 	{
+		static float startXpos = 0.0f;
+		static float startYpos = 0.0f;
+		static float endXPos = 0.0f;
+		static float endYPos = 0.0f;
+
 		bool isMouseMsg = mMouseInputReciver->TryProcessMouseMessage(msg);
 		if (isMouseMsg)
 		{
@@ -100,20 +105,24 @@ int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
 
 			switch (mouseInfo.MouseType)
 			{
-			case eMouseType::LButton:
-			{
-				break;
-			}
-			case eMouseType::RButton:
-			{
-				break;
-			}
-			case eMouseType::MButton:
-			{
-				break;
-			}
-			default:
-				break;
+				case eMouseType::LButton:
+				{
+					startXpos = (float)mouseInfo.CurrentXPos;
+					startYpos = (float)mouseInfo.CurrentYPos;
+					break;
+				}
+				case eMouseType::RButton:
+				{
+					endXPos = (float)mouseInfo.CurrentXPos;
+					endYPos = (float)mouseInfo.CurrentYPos;
+					break;
+				}
+				case eMouseType::MButton:
+				{
+					break;
+				}
+				default:
+					break;
 			}
 		}
 		// Process any messages in the queue.
@@ -123,7 +132,7 @@ int WinApplication::Run(HINSTANCE hInstance, int nCmdShow)
 			DispatchMessage(&msg);
 		}
 		
-		mSoftRenderer->UpdateFrame();
+		mSoftRenderer->UpdateFrame(startXpos,startYpos, endXPos, endYPos);
 	}
 
 	return static_cast<char>(msg.wParam);

@@ -14,7 +14,7 @@ public:
 	};
 	static Matrix4x4 GetRotationMatrix(const Vector3& eulerAngle);
 	static Matrix4x4 GetReverseRotationMatrix(const Vector3& eulerAngle);
-	static Matrix4x4 GetMoveMatrix(const Vector4& positionVector);
+	static Matrix4x4 GetMoveMatrix(const Vector3& positionVector);
 	static Matrix4x4 GetIdentitiy();
 
 	Matrix4x4() = default;

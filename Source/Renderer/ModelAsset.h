@@ -6,7 +6,7 @@
 #include "Vector4.h"
 #include "Vertex.h"
 #include <sstream>
-typedef unsigned int UINT;
+#include <AppDefinition.h>
 
 // Use OBJ File
 class ModelAsset final
@@ -20,16 +20,15 @@ public:
 private:
 
 	std::unique_ptr<Vertex[]> mVertices;
-	std::unique_ptr<UINT[]> mIndices;
-	UINT mVerticesLength;
-	UINT mIndicesLength;
+	std::unique_ptr<u32[]> mIndices;
+	u32 mVerticesLength;
+	u32 mIndicesLength;
 	
 
 public:
-
 	inline Vertex* GetVertices() const { return mVertices.get(); }
-	inline UINT* GetIndices() const { return mIndices.get(); }
-	inline UINT GetVerticesLength() const { return mVerticesLength; }
-	inline UINT GetIndicesLength() const { return mIndicesLength; }
+	inline u32* GetIndices() const { return mIndices.get(); }
+	inline u32 GetVerticesLength() const { return mVerticesLength; }
+	inline u32 GetIndicesLength() const { return mIndicesLength; }
 
 };

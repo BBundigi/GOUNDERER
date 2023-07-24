@@ -1,13 +1,15 @@
 #pragma once
 #include<Windows.h>
+#include<AppDefinition.h>
 
-enum eMouseType
+enum class eMouseType
 {
 	None,
 	LButton,
 	MButton,
 	RButton,
 };
+
 struct MouseInfo
 {
 	MouseInfo() = default;
@@ -22,7 +24,7 @@ struct MouseInfo
 class MouseInputReciver
 {
 public:
-	MouseInputReciver() = default;
+	MouseInputReciver();
     virtual	~MouseInputReciver() = default;
 	bool TryProcessMouseMessage(MSG msg);
 	inline MouseInfo GetMouseInfo()
@@ -32,4 +34,7 @@ public:
 private:
 	eMouseType mMouseButtonType;
 	MouseInfo mMouseInfo;
+	void ConvertMousePos(const int mouseXPos, const int mouseYPos, int* const rendererXPos, int* const rendererYPos);
+	void PoccessMouseInput(eMouseType inputMouseType, LPARAM msgParam);
+	void ClearMouseInfo();
 };

@@ -130,7 +130,7 @@ Matrix4x4 Matrix4x4::GetReverseRotationMatrix(const Vector3& eulerAngle)
 	yaw.TransPos();
 	return roll * pitch * yaw;
 }
-Matrix4x4 Matrix4x4::GetMoveMatrix(const Vector4& positionVector)
+Matrix4x4 Matrix4x4::GetMoveMatrix(const Vector3& positionVector)
 {
 	Matrix4x4 moveMat = Matrix4x4::GetIdentitiy();
 	moveMat.mElements[3] = positionVector.GetX();
